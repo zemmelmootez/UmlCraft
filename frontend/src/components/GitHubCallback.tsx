@@ -56,9 +56,21 @@ const GitHubCallback: React.FC = () => {
         try {
           console.log("Exchanging code for token...");
 
-          // Get the API URL from environment or use relative path for production
-          const apiUrl = import.meta.env.VITE_API_URL || "/api";
-          console.log("Using API URL:", apiUrl);
+          // Never use localhost in production!
+          // Get the proper API URL based on the current environment
+          let apiUrl;
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          ) {
+            // Local development
+            apiUrl = "http://localhost:3001/api";
+            console.log("Using local development API URL:", apiUrl);
+          } else {
+            // Production - use the same origin
+            apiUrl = `${window.location.origin}/api`;
+            console.log("Using production API URL:", apiUrl);
+          }
 
           // For debugging in production
           console.log("Code:", code ? code.substring(0, 5) + "..." : "missing");

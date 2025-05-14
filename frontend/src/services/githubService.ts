@@ -190,8 +190,20 @@ class GitHubService {
 
   async exchangeCodeForToken(code: string) {
     try {
-      // Get the API URL from environment variables, or default to relative URL for production
-      const apiUrl = import.meta.env.VITE_API_URL || "/api";
+      // Get the proper API URL based on the current environment
+      let apiUrl;
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      ) {
+        // Local development
+        apiUrl = "http://localhost:3001/api";
+        console.log("Using local development API URL:", apiUrl);
+      } else {
+        // Production - use the same origin
+        apiUrl = `${window.location.origin}/api`;
+        console.log("Using production API URL:", apiUrl);
+      }
 
       console.log("Exchanging code using API URL:", apiUrl);
 
@@ -218,29 +230,10 @@ class GitHubService {
         return token;
       } catch (error: any) {
         console.error("API call failed:", error.message);
+        console.error("Full error:", error);
 
-        // Try with absolute API URL if it failed with relative URL
-        if (apiUrl === "/api" && !import.meta.env.VITE_API_URL) {
-          console.log("Trying with absolute URL as fallback");
-          const absoluteApiUrl = `${window.location.origin}/api`;
-
-          const fallbackResponse = await axios.post(
-            `${absoluteApiUrl}/github/token`,
-            { code },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              timeout: 15000,
-            }
-          );
-
-          const fallbackToken = fallbackResponse.data.access_token;
-          if (!fallbackToken) {
-            throw new Error("No access token returned from server (fallback)");
-          }
-
-          return fallbackToken;
+        if (error.response) {
+          console.error("Error response data:", error.response.data);
         }
 
         throw error;
