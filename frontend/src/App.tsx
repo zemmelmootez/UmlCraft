@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -9,32 +9,8 @@ import { githubService } from "./services/githubService";
 
 function App() {
   const [isValidatingToken, setIsValidatingToken] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
-    // Log important information for debugging
-    console.log("App mounted, environment:", import.meta.env.MODE);
-    console.log("Current location:", window.location.href);
-    console.log("Base URL:", window.location.origin);
-    console.log("Path:", location.pathname);
-    console.log("Query:", location.search);
-
-    // Special handler for GitHub OAuth callback in the root path
-    // This handles the case where we redirected from /auth/github/callback to / with query params
-    if (
-      location.pathname === "/" &&
-      location.search.includes("code=") &&
-      location.search.includes("state=")
-    ) {
-      const element = document.getElementById("root");
-      if (element) {
-        // Render the GitHubCallback component directly
-        const callbackPath = `/auth/github/callback${location.search}`;
-        console.log("Redirecting to callback path:", callbackPath);
-        window.history.replaceState({}, "", callbackPath);
-      }
-    }
-
     // Validate token on app startup
     const validateToken = async () => {
       if (githubService.isAuthenticated()) {
@@ -60,7 +36,7 @@ function App() {
     };
 
     validateToken();
-  }, [location]);
+  }, []);
 
   return (
     <div
@@ -78,20 +54,13 @@ function App() {
         </div>
       )}
 
-      {/* Special handler for GitHub OAuth callback in the root */}
-      {location.pathname === "/" &&
-      location.search.includes("code=") &&
-      location.search.includes("state=") ? (
-        <GitHubCallback />
-      ) : (
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/saved-diagrams" element={<SavedDiagramsPage />} />
-          <Route path="/auth/github/callback" element={<GitHubCallback />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      )}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/saved-diagrams" element={<SavedDiagramsPage />} />
+        <Route path="/auth/github/callback" element={<GitHubCallback />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </div>
   );
 }

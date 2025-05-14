@@ -16,10 +16,7 @@
     }
   ],
   "routes": [
-    { "src": "/api/github/token", "dest": "backend/server.js" },
     { "src": "/api/(.*)", "dest": "backend/server.js" },
-    { "src": "/auth/github/callback", "dest": "frontend/index.html" },
-    { "src": "/auth/github", "dest": "backend/server.js" },
     { "src": "/(assets/.+)", "dest": "frontend/$1" },
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json))",
