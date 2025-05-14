@@ -16,6 +16,11 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/github/token",
+      "dest": "backend/server.js",
+      "methods": ["POST", "OPTIONS"]
+    },
     { "src": "/api/(.*)", "dest": "backend/server.js" },
     { "src": "/auth/github/callback", "dest": "frontend/index.html" },
     { "src": "/auth/github", "dest": "backend/server.js" },

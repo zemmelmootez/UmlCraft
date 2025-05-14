@@ -73,12 +73,17 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration based on environment
+// Update the CORS configuration section
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
-      ? [/\.vercel\.app$/, /localhost:\d+$/] // Allow Vercel domains and localhost for development
-      : "http://localhost:3000", // Development origin
+      ? [
+          "https://uml-craft.vercel.app",
+          "https://umlcraft.vercel.app",
+          /\.vercel\.app$/,
+          /localhost:\d+$/,
+        ]
+      : "http://localhost:5173",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -111,7 +116,12 @@ app.post("/api/github/token", async (req, res) => {
   try {
     const { code } = req.body;
 
+    console.log("Token exchange request received");
+    console.log("Headers:", JSON.stringify(req.headers));
+    console.log("Body:", JSON.stringify(req.body));
+
     if (!code) {
+      console.error("No authorization code provided in request");
       return res.status(400).json({ error: "Authorization code is required" });
     }
 
@@ -127,30 +137,56 @@ app.post("/api/github/token", async (req, res) => {
     );
 
     // Exchange the code for an access token
-    const response = await axios.post(
-      "https://github.com/login/oauth/access_token",
-      {
-        client_id: GITHUB_CLIENT_ID,
-        client_secret: GITHUB_CLIENT_SECRET,
-        code,
-      },
-      {
-        headers: {
-          Accept: "application/json",
+    try {
+      const response = await axios.post(
+        "https://github.com/login/oauth/access_token",
+        {
+          client_id: GITHUB_CLIENT_ID,
+          client_secret: GITHUB_CLIENT_SECRET,
+          code,
         },
+        {
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+
+      console.log("GitHub API response received");
+
+      if (response.data.error) {
+        console.error("GitHub API error:", response.data);
+        return res.status(400).json({
+          error: response.data.error_description,
+          details: response.data,
+        });
       }
-    );
 
-    if (response.data.error) {
-      console.error("GitHub API error:", response.data);
-      return res.status(400).json({ error: response.data.error_description });
+      // Return the token to the client
+      console.log("Successfully exchanged code for token");
+      res.json({ access_token: response.data.access_token });
+    } catch (githubError) {
+      console.error("GitHub API request failed:", githubError.message);
+      console.error("Full error:", githubError);
+
+      if (githubError.response) {
+        console.error("GitHub response data:", githubError.response.data);
+        console.error("GitHub response status:", githubError.response.status);
+      }
+
+      return res.status(500).json({
+        error: "GitHub API request failed",
+        details: githubError.message,
+        response: githubError.response?.data || "No response data",
+      });
     }
-
-    // Return the token to the client
-    res.json({ access_token: response.data.access_token });
   } catch (error) {
     console.error("Token exchange error:", error.message);
-    res.status(500).json({ error: "Failed to exchange code for token" });
+    console.error("Full error:", error);
+    res.status(500).json({
+      error: "Failed to exchange code for token",
+      details: error.message,
+    });
   }
 });
 

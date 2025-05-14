@@ -14,7 +14,10 @@ const GitHubCallback: React.FC = () => {
   useEffect(() => {
     // Fix for callback URL asset loading - if we're at /auth/github/callback, redirect to root
     // and preserve query parameters for proper OAuth handling
-    if (location.pathname === "/auth/github/callback" && window.location.pathname.includes("/auth/github/")) {
+    if (
+      location.pathname === "/auth/github/callback" &&
+      window.location.pathname.includes("/auth/github/")
+    ) {
       const queryParams = window.location.search;
       window.location.href = `/${queryParams}`;
       return;
@@ -55,44 +58,70 @@ const GitHubCallback: React.FC = () => {
 
           // Get the API URL from environment or use relative path for production
           const apiUrl = import.meta.env.VITE_API_URL || "/api";
+          console.log("Using API URL:", apiUrl);
+
+          // For debugging in production
+          console.log("Code:", code ? code.substring(0, 5) + "..." : "missing");
+          console.log("State validation:", state === savedState);
 
           // Use our server to exchange the code for a token
-          const response = await axios.post(`${apiUrl}/github/token`, { code });
+          try {
+            const response = await axios.post(`${apiUrl}/github/token`, {
+              code,
+            });
 
-          if (response.data.access_token) {
-            console.log("Authentication successful!");
-            localStorage.setItem("github_token", response.data.access_token);
-            githubService.setAccessToken(response.data.access_token);
+            if (response.data.access_token) {
+              console.log("Authentication successful!");
+              localStorage.setItem("github_token", response.data.access_token);
+              githubService.setAccessToken(response.data.access_token);
 
-            // Verify token works by making a test API call
-            try {
-              await githubService.getAuthenticatedUser();
-              navigate("/dashboard");
-            } catch (verifyError) {
-              console.error("Token verification failed:", verifyError);
+              // Verify token works by making a test API call
+              try {
+                await githubService.getAuthenticatedUser();
+                navigate("/dashboard");
+              } catch (verifyError) {
+                console.error("Token verification failed:", verifyError);
 
-              // Clear invalid token
-              githubService.clearToken();
+                // Clear invalid token
+                githubService.clearToken();
 
-              if (retryCount < MAX_RETRIES) {
-                setRetryCount((count) => count + 1);
-                // Restart OAuth flow
-                githubService.initiateOAuth();
-              } else {
-                setError(
-                  "Failed to verify GitHub token after multiple attempts. Please try again later."
-                );
-                setIsLoading(false);
+                if (retryCount < MAX_RETRIES) {
+                  setRetryCount((count) => count + 1);
+                  // Restart OAuth flow
+                  githubService.initiateOAuth();
+                } else {
+                  setError(
+                    "Failed to verify GitHub token after multiple attempts. Please try again later."
+                  );
+                  setIsLoading(false);
+                }
               }
+            } else {
+              console.error("No access token in response:", response.data);
+              setError("Failed to get access token - no token returned");
+              setIsLoading(false);
             }
-          } else {
-            setError("Failed to get access token - no token returned");
-            setIsLoading(false);
+          } catch (error: any) {
+            console.error("Token exchange failed:", error);
+            console.error("Error response:", error.response?.data);
+            const errorMessage =
+              error.response?.data?.error ||
+              "Failed to exchange code for token";
+
+            if (retryCount < MAX_RETRIES) {
+              console.log(`Retry attempt ${retryCount + 1}/${MAX_RETRIES}`);
+              setRetryCount((count) => count + 1);
+              // Small delay before retry
+              setTimeout(() => {
+                handleCallback();
+              }, 1000);
+            } else {
+              setError(`Authentication failed: ${errorMessage}`);
+              setIsLoading(false);
+            }
           }
-        } catch (error: any) {
-          console.error("Token exchange failed:", error);
-          const errorMessage =
-            error.response?.data?.error || "Failed to exchange code for token";
+        } catch (error) {
+          console.error("Callback handling error:", error);
 
           if (retryCount < MAX_RETRIES) {
             console.log(`Retry attempt ${retryCount + 1}/${MAX_RETRIES}`);
@@ -102,7 +131,9 @@ const GitHubCallback: React.FC = () => {
               handleCallback();
             }, 1000);
           } else {
-            setError(`Authentication failed: ${errorMessage}`);
+            setError(
+              "Failed to complete authentication after multiple attempts."
+            );
             setIsLoading(false);
           }
         }

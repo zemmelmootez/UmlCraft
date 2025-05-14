@@ -12,6 +12,13 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
+    // Log important information for debugging
+    console.log("App mounted, environment:", import.meta.env.MODE);
+    console.log("Current location:", window.location.href);
+    console.log("Base URL:", window.location.origin);
+    console.log("Path:", location.pathname);
+    console.log("Query:", location.search);
+
     // Special handler for GitHub OAuth callback in the root path
     // This handles the case where we redirected from /auth/github/callback to / with query params
     if (
@@ -23,6 +30,7 @@ function App() {
       if (element) {
         // Render the GitHubCallback component directly
         const callbackPath = `/auth/github/callback${location.search}`;
+        console.log("Redirecting to callback path:", callbackPath);
         window.history.replaceState({}, "", callbackPath);
       }
     }
