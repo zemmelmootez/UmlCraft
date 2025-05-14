@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="gradientBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f1f5f9;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4338ca;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1" />
+    </linearGradient>
+    
+    <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e5e7eb" stroke-width="0.5" />
+    </pattern>
+    
+    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" fill="url(#smallGrid)" />
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#d1d5db" stroke-width="1" />
+    </pattern>
+    
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="
+        1 0 0 0 0
+        0 1 0 0 0
+        0 0 1 0 0
+        0 0 0 0.3 0" result="glow" />
+      <feMerge>
+        <feMergeNode in="glow" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
+      <feOffset dx="0" dy="2" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.1" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <clipPath id="wavyClip">
+      <path d="M0,80 C100,60 200,100 300,80 S500,60 600,80 S800,100 900,80 S1100,60 1200,80 V600 H0 Z" />
+    </clipPath>
+  </defs>
+  
+  <!-- Background with subtle grid pattern -->
+  <rect width="100%" height="100%" fill="url(#gradientBg)" />
+  <rect width="100%" height="100%" fill="url(#grid)" opacity="0.2" />
+  
+  <!-- Large glowing accent circle -->
+  <circle cx="200" cy="150" r="300" fill="url(#accentGradient)" opacity="0.04" filter="url(#glow)" />
+  
+  <!-- Subtle decorative elements -->
+  <g opacity="0.2" filter="url(#softShadow)">
+    <!-- Wavy top border -->
+    <path d="M0,80 C100,60 200,100 300,80 S500,60 600,80 S800,100 900,80 S1100,60 1200,80" fill="none" stroke="#6366f1" stroke-width="2" />
+    
+    <!-- Bottom right accent -->
+    <path d="M800,400 Q900,420 950,500 T1200,550" fill="none" stroke="#6366f1" stroke-width="3" />
+    
+    <!-- Left side accent -->
+    <path d="M0,300 Q100,350 50,450 T100,600" fill="none" stroke="#6366f1" stroke-width="3" />
+  </g>
+  
+  <!-- Quote marks for testimonial backgrounds -->
+  <g opacity="0.07">
+    <!-- Left quote -->
+    <path d="M150,250 l-30,-50 h60 l30,50 v60 h-60 v-60 z" fill="#4338ca" />
+    
+    <!-- Right quote -->
+    <path d="M1000,250 l-30,-50 h60 l30,50 v60 h-60 v-60 z" fill="#4338ca" />
+  </g>
+  
+  <!-- Subtle pattern of small dots -->
+  <g fill="#6366f1" opacity="0.1">
+    <circle cx="100" cy="100" r="2" />
+    <circle cx="300" cy="150" r="2" />
+    <circle cx="500" cy="100" r="2" />
+    <circle cx="700" cy="150" r="2" />
+    <circle cx="900" cy="100" r="2" />
+    <circle cx="1100" cy="150" r="2" />
+    
+    <circle cx="100" cy="300" r="2" />
+    <circle cx="300" cy="350" r="2" />
+    <circle cx="500" cy="300" r="2" />
+    <circle cx="700" cy="350" r="2" />
+    <circle cx="900" cy="300" r="2" />
+    <circle cx="1100" cy="350" r="2" />
+    
+    <circle cx="100" cy="500" r="2" />
+    <circle cx="300" cy="550" r="2" />
+    <circle cx="500" cy="500" r="2" />
+    <circle cx="700" cy="550" r="2" />
+    <circle cx="900" cy="500" r="2" />
+    <circle cx="1100" cy="550" r="2" />
+  </g>
+  
+  <!-- Subtle animation dots -->
+  <g fill="#6366f1" opacity="0.15">
+    <circle cx="150" cy="250" r="3">
+      <animate attributeName="opacity" values="0.15;0.3;0.15" dur="4s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="450" cy="200" r="3">
+      <animate attributeName="opacity" values="0.15;0.3;0.15" dur="5s" repeatCount="indefinite" begin="1s" />
+    </circle>
+    <circle cx="750" cy="300" r="3">
+      <animate attributeName="opacity" values="0.15;0.3;0.15" dur="6s" repeatCount="indefinite" begin="2s" />
+    </circle>
+    <circle cx="1050" cy="250" r="3">
+      <animate attributeName="opacity" values="0.15;0.3;0.15" dur="4.5s" repeatCount="indefinite" begin="0.5s" />
+    </circle>
+  </g>
+  
+  <!-- Bottom decorative wave -->
+  <path d="M0,550 C200,580 400,530 600,550 S1000,580 1200,550 V600 H0 Z" fill="#f8fafc" opacity="0.3" />
+  
+  <!-- Testimonial Placeholders -->
+  <g filter="url(#softShadow)">
+    <!-- Card 1 -->
+    <rect x="250" y="200" width="200" height="120" rx="10" fill="white" opacity="0.2" />
+    <line x1="270" y1="230" x2="430" y2="230" stroke="#6366f1" stroke-width="2" opacity="0.3" />
+    <line x1="270" y1="250" x2="410" y2="250" stroke="#6366f1" stroke-width="2" opacity="0.2" />
+    <line x1="270" y1="270" x2="420" y2="270" stroke="#6366f1" stroke-width="2" opacity="0.15" />
+    <circle cx="290" cy="300" r="15" fill="#6366f1" opacity="0.2" />
+    <line x1="320" y1="295" x2="390" y2="295" stroke="#6366f1" stroke-width="2" opacity="0.2" />
+    <line x1="320" y1="305" x2="370" y2="305" stroke="#6366f1" stroke-width="2" opacity="0.15" />
+
+    <!-- Card 2 -->
+    <rect x="750" y="300" width="200" height="120" rx="10" fill="white" opacity="0.2" />
+    <line x1="770" y1="330" x2="930" y2="330" stroke="#6366f1" stroke-width="2" opacity="0.3" />
+    <line x1="770" y1="350" x2="910" y2="350" stroke="#6366f1" stroke-width="2" opacity="0.2" />
+    <line x1="770" y1="370" x2="920" y2="370" stroke="#6366f1" stroke-width="2" opacity="0.15" />
+    <circle cx="790" cy="400" r="15" fill="#6366f1" opacity="0.2" />
+    <line x1="820" y1="395" x2="890" y2="395" stroke="#6366f1" stroke-width="2" opacity="0.2" />
+    <line x1="820" y1="405" x2="870" y2="405" stroke="#6366f1" stroke-width="2" opacity="0.15" />
+  </g>
+  
+  <!-- Subtle stars -->
+  <g fill="#6366f1" opacity="0.15">
+    <path d="M280,180 l2,6 h6 l-5,4 l2,6 l-5,-4 l-5,4 l2,-6 l-5,-4 h6 z" />
+    <path d="M410,160 l2,6 h6 l-5,4 l2,6 l-5,-4 l-5,4 l2,-6 l-5,-4 h6 z" />
+    <path d="M780,280 l2,6 h6 l-5,4 l2,6 l-5,-4 l-5,4 l2,-6 l-5,-4 h6 z" />
+    <path d="M910,260 l2,6 h6 l-5,4 l2,6 l-5,-4 l-5,4 l2,-6 l-5,-4 h6 z" />
+  </g>
+</svg> 

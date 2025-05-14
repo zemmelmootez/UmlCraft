@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1" />
+      <feOffset dx="0.5" dy="0.5" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <clipPath id="circleClip">
+      <circle cx="16" cy="16" r="15" />
+    </clipPath>
+  </defs>
+  
+  <!-- Background Circle with subtle inner shadow -->
+  <circle cx="16" cy="16" r="16" fill="url(#grad)" />
+  <circle cx="16" cy="16" r="15.5" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+  
+  <!-- Subtle pattern overlay -->
+  <g opacity="0.1" clip-path="url(#circleClip)">
+    <path d="M0,0 L32,32" stroke="white" stroke-width="0.5" />
+    <path d="M0,8 L24,32" stroke="white" stroke-width="0.5" />
+    <path d="M0,16 L16,32" stroke="white" stroke-width="0.5" />
+    <path d="M0,24 L8,32" stroke="white" stroke-width="0.5" />
+    <path d="M8,0 L32,24" stroke="white" stroke-width="0.5" />
+    <path d="M16,0 L32,16" stroke="white" stroke-width="0.5" />
+    <path d="M24,0 L32,8" stroke="white" stroke-width="0.5" />
+  </g>
+  
+  <!-- UML Diagram Icon - Enhanced class representation with shadow -->
+  <g filter="url(#shadow)">
+    <rect x="8" y="8" width="16" height="16" rx="3" fill="white" opacity="0.95" />
+    <line x1="8" y1="13" x2="24" y2="13" stroke="#4f46e5" stroke-width="1.5" />
+    <line x1="8" y1="18" x2="24" y2="18" stroke="#4f46e5" stroke-width="1.5" />
+    
+    <!-- Class name text simulation -->
+    <rect x="10" y="10" width="8" height="1.5" rx="0.75" fill="#4f46e5" opacity="0.7" />
+    
+    <!-- Class attributes simulation -->
+    <rect x="10" y="14.5" width="10" height="1" rx="0.5" fill="#4f46e5" opacity="0.5" />
+    <rect x="10" y="16" width="7" height="1" rx="0.5" fill="#4f46e5" opacity="0.5" />
+    
+    <!-- Class methods simulation -->
+    <rect x="10" y="19.5" width="9" height="1" rx="0.5" fill="#4f46e5" opacity="0.5" />
+    <rect x="10" y="21" width="12" height="1" rx="0.5" fill="#4f46e5" opacity="0.5" />
+  </g>
+  
+  <!-- Highlight accent -->
+  <circle cx="24" cy="8" r="3" fill="white" opacity="0.8" />
+</svg> 

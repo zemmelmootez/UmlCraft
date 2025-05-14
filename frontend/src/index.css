@@ -1,0 +1,207 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add reset CSS to fix rendering issues */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Force visible content */
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Force hardware acceleration for all elements */
+* {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  html {
+    font-family: "Inter", system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900 min-h-screen overflow-x-hidden;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: "Fira Code", monospace;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 px-5 py-2.5 shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary-500 text-white hover:bg-secondary-600 px-5 py-2.5 shadow-sm;
+  }
+
+  .btn-outline {
+    @apply btn border border-primary-600 text-primary-600 hover:bg-primary-50 px-5 py-2.5;
+  }
+
+  .btn-ghost {
+    @apply btn text-primary-600 hover:bg-primary-50 px-5 py-2.5;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow p-6 cursor-pointer relative z-10;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+
+  .input {
+    @apply block w-full px-4 py-2.5 text-neutral-900 bg-white border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  }
+
+  .section {
+    @apply py-12 md:py-20;
+  }
+}
+
+/* Loading spinner animation */
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.loading-spinner:before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  border-top-color: #4338ca;
+  animation: spinner 0.6s linear infinite;
+}
+
+/* Slide animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+/* Staggered children animations */
+.stagger-children > * {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.stagger-children > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.stagger-children > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.stagger-children > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.stagger-children > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.stagger-children > *:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+.stagger-children > *:nth-child(7) {
+  animation-delay: 0.7s;
+}
+
+.stagger-children > *:nth-child(8) {
+  animation-delay: 0.8s;
+}
+
+.stagger-children > *:nth-child(9) {
+  animation-delay: 0.9s;
+}
+
+/* Add z-index utilities */
+.z-1 {
+  z-index: 1;
+}
+
+.z-2 {
+  z-index: 2;
+}
+
+.z-5 {
+  z-index: 5;
+}
+
+.z-15 {
+  z-index: 15;
+}
+
+.z-25 {
+  z-index: 25;
+}
+
+.z-30 {
+  z-index: 30;
+}
+
+.z-40 {
+  z-index: 40;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+/* Add special styling for hero section buttons */
+.hero-button {
+  position: relative;
+  z-index: 50 !important; /* Force highest z-index */
+  pointer-events: auto !important; /* Ensure clickability */
+}
+
+/* Fix for wave separator overlapping content */
+.wave-separator {
+  pointer-events: none !important; /* Prevent intercepting clicks */
+}

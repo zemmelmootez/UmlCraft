@@ -1,0 +1,22 @@
+{
+  "name": "umlcraft-backend",
+  "version": "0.1.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "create-env": "node -e \"const fs=require('fs'); fs.writeFileSync('.env', '# GitHub OAuth credentials\\nGITHUB_CLIENT_ID=your_github_client_id\\nGITHUB_CLIENT_SECRET=your_github_client_secret\\n\\n# OpenAI API key\\nOPENAI_API_KEY=your_openai_api_key\\n\\n# Server port\\nPORT=3001');\""
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "openai": "^4.98.0",
+    "plantuml-encoder": "^1.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

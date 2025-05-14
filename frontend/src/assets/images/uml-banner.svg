@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
+      <feOffset dx="2" dy="4" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <linearGradient id="classGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f9fafb;stop-opacity:1" />
+    </linearGradient>
+    <style>
+      .class-title { font-family: 'Arial', sans-serif; font-weight: 600; }
+      .class-attr { font-family: 'Consolas', monospace; }
+      .class-method { font-family: 'Consolas', monospace; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#grad1)" />
+  <path d="M0,200 Q300,150 600,200 T1200,200 V400 H0 Z" fill="rgba(255,255,255,0.05)" />
+  <path d="M0,250 Q300,200 600,250 T1200,250 V400 H0 Z" fill="rgba(255,255,255,0.03)" />
+  
+  <!-- Grid lines for depth -->
+  <g stroke="rgba(255,255,255,0.1)" stroke-width="0.5">
+    <line x1="0" y1="50" x2="1200" y2="50" />
+    <line x1="0" y1="100" x2="1200" y2="100" />
+    <line x1="0" y1="150" x2="1200" y2="150" />
+    <line x1="0" y1="200" x2="1200" y2="200" />
+    <line x1="0" y1="250" x2="1200" y2="250" />
+    <line x1="0" y1="300" x2="1200" y2="300" />
+    <line x1="0" y1="350" x2="1200" y2="350" />
+    
+    <line x1="100" y1="0" x2="100" y2="400" />
+    <line x1="300" y1="0" x2="300" y2="400" />
+    <line x1="500" y1="0" x2="500" y2="400" />
+    <line x1="700" y1="0" x2="700" y2="400" />
+    <line x1="900" y1="0" x2="900" y2="400" />
+    <line x1="1100" y1="0" x2="1100" y2="400" />
+  </g>
+  
+  <!-- UML Class Diagrams with filter applied -->
+  <g transform="translate(100, 70)" filter="url(#shadow)">
+    <!-- Class 1 - User -->
+    <rect x="50" y="50" width="200" height="160" fill="url(#classGrad)" rx="6" />
+    <rect x="50" y="50" width="200" height="40" fill="#f0f4ff" rx="6" ry="0" />
+    <line x1="50" y1="90" x2="250" y2="90" stroke="#4f46e5" stroke-width="1.5" />
+    <line x1="50" y1="140" x2="250" y2="140" stroke="#4f46e5" stroke-width="1.5" />
+    <text x="150" y="75" text-anchor="middle" fill="#1e293b" font-family="Arial" font-size="16" font-weight="600">User</text>
+    <text x="65" y="110" fill="#64748b" font-family="Consolas, monospace" font-size="14">- id: string</text>
+    <text x="65" y="130" fill="#64748b" font-family="Consolas, monospace" font-size="14">- email: string</text>
+    <text x="65" y="160" fill="#64748b" font-family="Consolas, monospace" font-size="14">+ login(): boolean</text>
+    <text x="65" y="180" fill="#64748b" font-family="Consolas, monospace" font-size="14">+ logout(): void</text>
+    <text x="65" y="200" fill="#64748b" font-family="Consolas, monospace" font-size="14">+ getProfile(): Profile</text>
+    
+    <!-- Class 2 - Repository -->
+    <rect x="400" y="50" width="220" height="160" fill="url(#classGrad)" rx="6" />
+    <rect x="400" y="50" width="220" height="40" fill="#f0f4ff" rx="6" ry="0" />
+    <line x1="400" y1="90" x2="620" y2="90" stroke="#4f46e5" stroke-width="1.5" />
+    <line x1="400" y1="140" x2="620" y2="140" stroke="#4f46e5" stroke-width="1.5" />
+    <text x="510" y="75" text-anchor="middle" fill="#1e293b" font-family="Arial" font-size="16" font-weight="600">Repository</text>
+    <text x="415" y="110" fill="#64748b" font-family="Consolas, monospace" font-size="14">- owner: string</text>
+    <text x="415" y="130" fill="#64748b" font-family="Consolas, monospace" font-size="14">- name: string</text>
+    <text x="415" y="160" fill="#64748b" font-family="Consolas, monospace" font-size="14">+ clone(): boolean</text>
+    <text x="415" y="180" fill="#64748b" font-family="Consolas, monospace" font-size="14">+ analyze(): RepositoryData</text>
+    <text x="415" y="200" fill="#64748b" font-family="Consolas, monospace" font-size="14">+ getBranches(): Branch[]</text>
+    
+    <!-- Connection between classes -->
+    <line x1="250" y1="130" x2="400" y2="130" stroke="#6366f1" stroke-width="2" />
+    <polygon points="390,130 400,134 400,126" fill="#6366f1" />
+    
+    <!-- Class 3 - Diagram -->
+    <rect x="250" y="250" width="220" height="150" fill="url(#classGrad)" rx="6" transform="rotate(-3)" filter="url(#shadow)" />
+    <rect x="250" y="250" width="220" height="40" fill="#f0f4ff" rx="6" ry="0" transform="rotate(-3)" />
+    <line x1="250" y1="290" x2="470" y2="290" stroke="#4f46e5" stroke-width="1.5" transform="rotate(-3)" />
+    <line x1="250" y1="340" x2="470" y2="340" stroke="#4f46e5" stroke-width="1.5" transform="rotate(-3)" />
+    <text x="360" y="275" text-anchor="middle" fill="#1e293b" font-family="Arial" font-size="16" font-weight="600" transform="rotate(-3)">Diagram</text>
+    <text x="265" y="310" fill="#64748b" font-family="Consolas, monospace" font-size="14" transform="rotate(-3)">- type: DiagramType</text>
+    <text x="265" y="330" fill="#64748b" font-family="Consolas, monospace" font-size="14" transform="rotate(-3)">- plantUmlCode: string</text>
+    <text x="265" y="360" fill="#64748b" font-family="Consolas, monospace" font-size="14" transform="rotate(-3)">+ render(): void</text>
+    <text x="265" y="380" fill="#64748b" font-family="Consolas, monospace" font-size="14" transform="rotate(-3)">+ export(format): File</text>
+  </g>
+  
+  <!-- Floating elements -->
+  <circle cx="900" cy="100" r="40" fill="rgba(255,255,255,0.1)" />
+  <circle cx="950" cy="150" r="60" fill="rgba(255,255,255,0.08)" />
+  <circle cx="850" cy="200" r="25" fill="rgba(255,255,255,0.12)" />
+  <rect x="880" y="250" width="100" height="100" rx="10" fill="rgba(255,255,255,0.08)" />
+  
+  <!-- Code dots/nodes in the background -->
+  <g opacity="0.15">
+    <circle cx="820" cy="120" r="3" fill="white" />
+    <circle cx="840" cy="100" r="3" fill="white" />
+    <circle cx="860" cy="140" r="3" fill="white" />
+    <circle cx="880" cy="90" r="3" fill="white" />
+    <circle cx="900" cy="170" r="3" fill="white" />
+    <circle cx="920" cy="110" r="3" fill="white" />
+    <circle cx="940" cy="190" r="3" fill="white" />
+    <circle cx="960" cy="120" r="3" fill="white" />
+    <circle cx="980" cy="160" r="3" fill="white" />
+    <circle cx="1000" cy="130" r="3" fill="white" />
+    
+    <!-- Connecting lines -->
+    <line x1="820" y1="120" x2="840" y2="100" stroke="white" />
+    <line x1="840" y1="100" x2="860" y2="140" stroke="white" />
+    <line x1="860" y1="140" x2="880" y2="90" stroke="white" />
+    <line x1="880" y1="90" x2="900" y2="170" stroke="white" />
+    <line x1="900" y1="170" x2="920" y2="110" stroke="white" />
+    <line x1="920" y1="110" x2="940" y2="190" stroke="white" />
+    <line x1="940" y1="190" x2="960" y2="120" stroke="white" />
+    <line x1="960" y1="120" x2="980" y2="160" stroke="white" />
+    <line x1="980" y1="160" x2="1000" y2="130" stroke="white" />
+  </g>
+  
+  <!-- Title text with shadow and gradient -->
+  <g filter="url(#shadow)">
+    <text x="900" y="350" text-anchor="middle" fill="white" font-family="Arial" font-size="40" font-weight="bold">UML Generator</text>
+    <text x="900" y="380" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="Arial" font-size="18">AI-Powered Diagram Creation</text>
+  </g>
+</svg> 
