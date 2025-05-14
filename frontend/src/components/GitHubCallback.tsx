@@ -42,12 +42,13 @@ const GitHubCallback: React.FC = () => {
         }
 
         try {
-          console.log("Sending code to local server for exchange...");
-          // Use our local server to exchange the code for a token
-          const response = await axios.post(
-            "http://localhost:3001/api/github/token",
-            { code }
-          );
+          console.log("Exchanging code for token...");
+
+          // Get the API URL from environment or use relative path for production
+          const apiUrl = import.meta.env.VITE_API_URL || "/api";
+
+          // Use our server to exchange the code for a token
+          const response = await axios.post(`${apiUrl}/github/token`, { code });
 
           if (response.data.access_token) {
             console.log("Authentication successful!");

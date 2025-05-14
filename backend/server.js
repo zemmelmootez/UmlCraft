@@ -89,6 +89,23 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+// Handler for GitHub OAuth redirect in serverless environments
+app.get("/auth/github", (req, res) => {
+  // In serverless, this shouldn't be hit directly but is for safety
+  const clientId = GITHUB_CLIENT_ID;
+  const redirectUri =
+    process.env.NODE_ENV === "production"
+      ? `${req.protocol}://${req.headers.host}/auth/github/callback`
+      : "http://localhost:5173/auth/github/callback";
+
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&scope=repo,user`;
+
+  // Redirect to GitHub OAuth flow
+  res.redirect(githubAuthUrl);
+});
+
 // GitHub OAuth token exchange endpoint
 app.post("/api/github/token", async (req, res) => {
   try {
