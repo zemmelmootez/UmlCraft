@@ -29,14 +29,15 @@ interface FocusedAiUmlParams extends AiUmlParams {
 export type DiagramType = "class" | "sequence" | "activity" | "component";
 
 class UmlService {
-  private apiUrl = "http://localhost:3001";
+  // Get the API URL from environment variables, or default to relative URL for production
+  private apiUrl = import.meta.env.VITE_API_URL || "/api";
 
   async generateUmlDiagram(
     files: FileContent[],
     language: string = "java"
   ): Promise<UmlGenerationResult> {
     try {
-      const response = await axios.post(`${this.apiUrl}/api/generate-uml`, {
+      const response = await axios.post(`${this.apiUrl}/generate-uml`, {
         files,
         language,
       });
@@ -63,7 +64,7 @@ class UmlService {
     params: AiUmlParams
   ): Promise<UmlGenerationResult> {
     try {
-      const response = await axios.post(`${this.apiUrl}/api/ai-generate-uml`, {
+      const response = await axios.post(`${this.apiUrl}/ai-generate-uml`, {
         owner: params.owner,
         repo: params.repo,
         token: params.token,
@@ -82,7 +83,7 @@ class UmlService {
   ): Promise<UmlGenerationResult> {
     try {
       const response = await axios.post(
-        `${this.apiUrl}/api/ai-generate-uml-focused`,
+        `${this.apiUrl}/ai-generate-uml-focused`,
         {
           owner: params.owner,
           repo: params.repo,

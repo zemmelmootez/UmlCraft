@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DiagramDisplay from "./DiagramDisplay";
+import { DiagramType } from "../services/umlService";
 
 interface SavedDiagram {
   id: string;
@@ -7,7 +8,7 @@ interface SavedDiagram {
   description: string;
   repoName: string;
   repoOwner: string;
-  diagramType: string;
+  diagramType: DiagramType;
   plantUmlCode: string;
   diagramUrl: string;
   createdAt: number;

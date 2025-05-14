@@ -7,10 +7,24 @@
       "use": "@vercel/static-build",
       "config": { "distDir": "dist" }
     },
-    { "src": "backend/server.js", "use": "@vercel/node" }
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["backend/**"]
+      }
+    }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "backend/server.js" },
-    { "src": "/(.*)", "dest": "frontend/$1" }
-  ]
+    { "src": "/(assets/.+)", "dest": "frontend/$1" },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json))",
+      "dest": "frontend/$1"
+    },
+    { "src": "/(.*)", "dest": "frontend/index.html" }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

@@ -180,8 +180,11 @@ class GitHubService {
 
   async exchangeCodeForToken(code: string) {
     try {
+      // Get the API URL from environment variables, or default to relative URL for production
+      const apiUrl = import.meta.env.VITE_API_URL || "/api";
+
       const response = await axios.post(
-        "http://localhost:3001/api/github/token",
+        `${apiUrl}/github/token`,
         { code },
         {
           headers: {

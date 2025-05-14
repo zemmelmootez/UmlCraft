@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { saveAs } from "file-saver";
 import DiagramEditor from "./DiagramEditor";
+import { DiagramType } from "../services/umlService";
 
 interface DiagramDisplayProps {
   diagramUrl: string;
   plantUmlCode: string;
-  diagramType?: string;
+  diagramType?: DiagramType;
   onClose: () => void;
   onEdit?: () => void;
   repoDetails?: {
     owner: string;
     repo: string;
-    diagramType: string;
+    diagramType: DiagramType;
   };
 }
 

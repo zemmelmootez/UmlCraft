@@ -73,8 +73,19 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enable CORS
-app.use(cors());
+// CORS configuration based on environment
+const corsOptions = {
+  origin:
+    process.env.NODE_ENV === "production"
+      ? [/\.vercel\.app$/, /localhost:\d+$/] // Allow Vercel domains and localhost for development
+      : "http://localhost:3000", // Development origin
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+// Enable CORS with configuration
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
@@ -1107,6 +1118,15 @@ function parseJavaOrTypeScriptFile(fileName, content) {
 }
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  // Only listen on a port in development mode
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+} else {
+  // In production (Vercel), we don't need to call listen() as it's handled by the platform
+  console.log("Server running in production mode");
+}
+
+// For Vercel serverless deployment, export the app
+module.exports = app;
