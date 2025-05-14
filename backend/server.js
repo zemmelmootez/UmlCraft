@@ -117,42 +117,60 @@ app.post("/api/github/token", async (req, res) => {
     const { code } = req.body;
 
     console.log("Token exchange request received");
-    console.log("Headers:", JSON.stringify(req.headers));
-    console.log("Body:", JSON.stringify(req.body));
+    console.log("Request body:", req.body);
+    console.log("Environment check:");
+    console.log("- NODE_ENV:", process.env.NODE_ENV);
+    console.log("- GITHUB_CLIENT_ID exists:", !!process.env.GITHUB_CLIENT_ID);
+    console.log(
+      "- GITHUB_CLIENT_SECRET exists:",
+      !!process.env.GITHUB_CLIENT_SECRET
+    );
+    console.log("- Running in Vercel:", !!process.env.VERCEL);
 
     if (!code) {
       console.error("No authorization code provided in request");
       return res.status(400).json({ error: "Authorization code is required" });
     }
 
-    console.log("Using GitHub credentials:");
-    console.log("- Client ID:", GITHUB_CLIENT_ID);
-    console.log("- Client Secret exists:", !!GITHUB_CLIENT_SECRET);
+    // Check if GitHub credentials are available in environment variables
+    if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+      console.error("GitHub credentials missing from environment variables");
+      return res.status(500).json({
+        error: "GitHub credentials not configured on server",
+        details: {
+          clientIdExists: !!process.env.GITHUB_CLIENT_ID,
+          clientSecretExists: !!process.env.GITHUB_CLIENT_SECRET,
+          nodeEnv: process.env.NODE_ENV,
+        },
+      });
+    }
 
     console.log(
-      `Exchanging code for token with: Client ID: ${GITHUB_CLIENT_ID.substring(
+      `Exchanging code for token with: Client ID: ${process.env.GITHUB_CLIENT_ID.substring(
         0,
         5
       )}..., Code: ${code.substring(0, 5)}...`
     );
 
-    // Exchange the code for an access token
     try {
+      // Exchange the code for an access token
       const response = await axios.post(
         "https://github.com/login/oauth/access_token",
         {
-          client_id: GITHUB_CLIENT_ID,
-          client_secret: GITHUB_CLIENT_SECRET,
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
           code,
         },
         {
           headers: {
             Accept: "application/json",
           },
+          timeout: 8000, // 8 second timeout
         }
       );
 
-      console.log("GitHub API response received");
+      console.log("GitHub API response received:", response.status);
+      console.log("Response data:", response.data);
 
       if (response.data.error) {
         console.error("GitHub API error:", response.data);
@@ -164,26 +182,29 @@ app.post("/api/github/token", async (req, res) => {
 
       // Return the token to the client
       console.log("Successfully exchanged code for token");
-      res.json({ access_token: response.data.access_token });
+      return res.json({ access_token: response.data.access_token });
     } catch (githubError) {
       console.error("GitHub API request failed:", githubError.message);
-      console.error("Full error:", githubError);
 
       if (githubError.response) {
-        console.error("GitHub response data:", githubError.response.data);
         console.error("GitHub response status:", githubError.response.status);
+        console.error(
+          "GitHub response data:",
+          JSON.stringify(githubError.response.data)
+        );
       }
 
       return res.status(500).json({
         error: "GitHub API request failed",
         details: githubError.message,
-        response: githubError.response?.data || "No response data",
+        response: githubError.response
+          ? JSON.stringify(githubError.response.data)
+          : "No response data",
       });
     }
   } catch (error) {
     console.error("Token exchange error:", error.message);
-    console.error("Full error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Failed to exchange code for token",
       details: error.message,
     });
@@ -1169,6 +1190,28 @@ function parseJavaOrTypeScriptFile(fileName, content) {
 
   return { classInfo, fileRelationships: relationships };
 }
+
+// Add a debug endpoint for environment variables
+app.get("/api/debug/env", (req, res) => {
+  res.json({
+    nodeEnv: process.env.NODE_ENV,
+    github: {
+      clientIdExists: !!process.env.GITHUB_CLIENT_ID,
+      clientSecretExists: !!process.env.GITHUB_CLIENT_SECRET,
+      clientIdPrefix: process.env.GITHUB_CLIENT_ID
+        ? process.env.GITHUB_CLIENT_ID.substring(0, 5)
+        : null,
+    },
+    openai: {
+      apiKeyExists: !!process.env.OPENAI_API_KEY,
+    },
+    vercel: {
+      isVercel: !!process.env.VERCEL,
+      url: process.env.VERCEL_URL || null,
+      env: process.env.VERCEL_ENV || null,
+    },
+  });
+});
 
 // Start the server
 if (process.env.NODE_ENV !== "production") {

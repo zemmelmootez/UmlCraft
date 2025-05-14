@@ -78,9 +78,18 @@ const GitHubCallback: React.FC = () => {
 
           // Use our server to exchange the code for a token
           try {
-            const response = await axios.post(`${apiUrl}/github/token`, {
-              code,
-            });
+            const response = await axios.post(
+              `${apiUrl}/github/token`,
+              {
+                code,
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                timeout: 10000, // 10 seconds
+              }
+            );
 
             if (response.data.access_token) {
               console.log("Authentication successful!");
