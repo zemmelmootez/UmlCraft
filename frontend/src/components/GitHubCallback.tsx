@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { githubService } from "../services/githubService";
 import axios from "axios";
 
 const GitHubCallback: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 2;
 
   useEffect(() => {
+    // Fix for callback URL asset loading - if we're at /auth/github/callback, redirect to root
+    // and preserve query parameters for proper OAuth handling
+    if (
+      location.pathname === "/auth/github/callback" &&
+      window.location.pathname.includes("/auth/github/")
+    ) {
+      const queryParams = window.location.search;
+      window.location.href = `/${queryParams}`;
+      return;
+    }
+
     const handleCallback = async () => {
       setIsLoading(true);
 
@@ -42,11 +54,65 @@ const GitHubCallback: React.FC = () => {
         }
 
         try {
-          console.log("Sending code to local server for exchange...");
-          // Use our local server to exchange the code for a token
+          console.log("Exchanging code for token...");
+
+          // Never use localhost in production!
+          // Get the proper API URL based on the current environment
+          let apiUrl;
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          ) {
+            // Local development
+            apiUrl = "http://localhost:3001/api";
+            console.log("Using local development API URL:", apiUrl);
+          } else {
+            // Production - use the same origin
+            apiUrl = `${window.location.origin}/api`;
+            console.log("Using production API URL:", apiUrl);
+          }
+
+          // For debugging in production
+          console.log("Code:", code ? code.substring(0, 5) + "..." : "missing");
+          console.log("State validation:", state === savedState);
+
+          // First try the debug endpoint to make sure the server is responsive
+          try {
+            console.log("Testing debug endpoint...");
+            const debugResponse = await axios.post(
+              `${apiUrl}/debug/token`,
+              { code, test: true },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                timeout: 5000, // 5 seconds
+              }
+            );
+
+            console.log(
+              "Debug endpoint response:",
+              debugResponse.status,
+              debugResponse.data
+            );
+
+            // Now try the real token exchange
+            console.log("Proceeding to real token exchange...");
+          } catch (debugError) {
+            console.error("Debug endpoint failed:", debugError);
+            console.log("Trying real endpoint anyway...");
+          }
+
+          // Use our server to exchange the code for a token
           const response = await axios.post(
-            "http://localhost:3001/api/github/token",
-            { code }
+            `${apiUrl}/github/token`,
+            { code },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+              timeout: 10000, // 10 seconds
+            }
           );
 
           if (response.data.access_token) {
@@ -76,11 +142,13 @@ const GitHubCallback: React.FC = () => {
               }
             }
           } else {
+            console.error("No access token in response:", response.data);
             setError("Failed to get access token - no token returned");
             setIsLoading(false);
           }
         } catch (error: any) {
           console.error("Token exchange failed:", error);
+          console.error("Error response:", error.response?.data);
           const errorMessage =
             error.response?.data?.error || "Failed to exchange code for token";
 
@@ -116,7 +184,7 @@ const GitHubCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [navigate, retryCount]);
+  }, [navigate, retryCount, location.pathname]);
 
   const tryAgain = () => {
     setError(null);

@@ -164,42 +164,80 @@ class GitHubService {
       clientId = FALLBACK_CLIENT_ID;
     }
 
+    console.log("Using GitHub client ID:", clientId);
+
     if (!clientId) {
       throw new Error("GitHub Client ID not configured");
     }
 
-    const redirectUri = `${window.location.origin}/auth/github/callback`;
+    // Use absolute path for the callback URL to avoid subfolder issues
+    const baseUrl = window.location.origin;
+    console.log("Base URL for OAuth:", baseUrl);
+
+    // IMPORTANT: This must exactly match what's registered in the GitHub OAuth app settings
+    const redirectUri = `${baseUrl}/auth/github/callback`;
+    console.log("Redirect URI:", redirectUri);
+
     const scope = "repo,user"; // Adjust as needed
 
     const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri
     )}&scope=${scope}&state=${state}`;
 
+    console.log("Redirecting to GitHub OAuth:", authUrl);
     window.location.href = authUrl;
   }
 
   async exchangeCodeForToken(code: string) {
     try {
-      // Get the API URL from environment variables, or default to relative URL for production
-      const apiUrl = import.meta.env.VITE_API_URL || "/api";
-
-      const response = await axios.post(
-        `${apiUrl}/github/token`,
-        { code },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 10000, // 10 second timeout
-        }
-      );
-
-      const token = response.data.access_token;
-      if (!token) {
-        throw new Error("No access token returned from server");
+      // Get the proper API URL based on the current environment
+      let apiUrl;
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      ) {
+        // Local development
+        apiUrl = "http://localhost:3001/api";
+        console.log("Using local development API URL:", apiUrl);
+      } else {
+        // Production - use the same origin
+        apiUrl = `${window.location.origin}/api`;
+        console.log("Using production API URL:", apiUrl);
       }
 
-      return token;
+      console.log("Exchanging code using API URL:", apiUrl);
+
+      try {
+        const response = await axios.post(
+          `${apiUrl}/github/token`,
+          { code },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            timeout: 15000, // 15 second timeout
+          }
+        );
+
+        console.log("Token exchange response:", response.status);
+
+        const token = response.data.access_token;
+        if (!token) {
+          console.error("No access token in response:", response.data);
+          throw new Error("No access token returned from server");
+        }
+
+        return token;
+      } catch (error: any) {
+        console.error("API call failed:", error.message);
+        console.error("Full error:", error);
+
+        if (error.response) {
+          console.error("Error response data:", error.response.data);
+        }
+
+        throw error;
+      }
     } catch (error) {
       console.error("Failed to exchange code for token:", error);
       throw error;

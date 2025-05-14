@@ -73,12 +73,28 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration based on environment
+// Add global error handling - place this before app.use(cors())
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  // Application specific handling code here
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  // Application specific handling code here
+});
+
+// Update the CORS configuration section
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
-      ? [/\.vercel\.app$/, /localhost:\d+$/] // Allow Vercel domains and localhost for development
-      : "http://localhost:3000", // Development origin
+      ? [
+          "https://uml-craft.vercel.app",
+          "https://umlcraft.vercel.app",
+          /\.vercel\.app$/,
+          /localhost:\d+$/,
+        ]
+      : "http://localhost:5173",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -89,51 +105,142 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+// Handler for GitHub OAuth redirect in serverless environments
+app.get("/auth/github", (req, res) => {
+  // In serverless, this shouldn't be hit directly but is for safety
+  const clientId = GITHUB_CLIENT_ID;
+  const redirectUri =
+    process.env.NODE_ENV === "production"
+      ? `${req.protocol}://${req.headers.host}/auth/github/callback`
+      : "http://localhost:5173/auth/github/callback";
+
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&scope=repo,user`;
+
+  // Redirect to GitHub OAuth flow
+  res.redirect(githubAuthUrl);
+});
+
 // GitHub OAuth token exchange endpoint
-app.post("/api/github/token", async (req, res) => {
+app.post("/api/github/token", async (req, res, next) => {
   try {
+    console.log("Token exchange request received");
+
+    // Check if request body exists
+    if (!req.body) {
+      console.error("Request body is undefined");
+      return res.status(400).json({ error: "No request body" });
+    }
+
     const { code } = req.body;
+    console.log("Request body:", typeof req.body, req.body);
+    console.log(
+      "Code from request:",
+      typeof code,
+      code ? code.substring(0, 5) + "..." : "missing"
+    );
+
+    console.log("Environment check:");
+    console.log("- NODE_ENV:", process.env.NODE_ENV);
+    console.log("- GITHUB_CLIENT_ID exists:", !!process.env.GITHUB_CLIENT_ID);
+    console.log(
+      "- GITHUB_CLIENT_SECRET exists:",
+      !!process.env.GITHUB_CLIENT_SECRET
+    );
+    console.log("- Running in Vercel:", !!process.env.VERCEL);
 
     if (!code) {
+      console.error("No authorization code provided in request");
       return res.status(400).json({ error: "Authorization code is required" });
     }
 
-    console.log("Using GitHub credentials:");
-    console.log("- Client ID:", GITHUB_CLIENT_ID);
-    console.log("- Client Secret exists:", !!GITHUB_CLIENT_SECRET);
+    // Check if GitHub credentials are available in environment variables
+    if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+      console.error("GitHub credentials missing from environment variables");
+      return res.status(500).json({
+        error: "GitHub credentials not configured on server",
+        details: {
+          clientIdExists: !!process.env.GITHUB_CLIENT_ID,
+          clientSecretExists: !!process.env.GITHUB_CLIENT_SECRET,
+          nodeEnv: process.env.NODE_ENV,
+        },
+      });
+    }
+
+    // Hardcoded values for debugging
+    const clientId = process.env.GITHUB_CLIENT_ID || "Ov23liuIob6HCWRHv5sc";
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET || "";
 
     console.log(
-      `Exchanging code for token with: Client ID: ${GITHUB_CLIENT_ID.substring(
+      `Exchanging code for token with: Client ID: ${clientId.substring(
         0,
         5
       )}..., Code: ${code.substring(0, 5)}...`
     );
 
-    // Exchange the code for an access token
-    const response = await axios.post(
-      "https://github.com/login/oauth/access_token",
-      {
-        client_id: GITHUB_CLIENT_ID,
-        client_secret: GITHUB_CLIENT_SECRET,
-        code,
-      },
-      {
-        headers: {
-          Accept: "application/json",
+    try {
+      // Exchange the code for an access token
+      const response = await axios.post(
+        "https://github.com/login/oauth/access_token",
+        {
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
         },
+        {
+          headers: {
+            Accept: "application/json",
+          },
+          timeout: 10000, // 10 second timeout
+        }
+      );
+
+      console.log("GitHub API response received:", response.status);
+      console.log("Response data:", response.data);
+
+      if (response.data.error) {
+        console.error("GitHub API error:", response.data);
+        return res.status(400).json({
+          error: response.data.error_description,
+          details: response.data,
+        });
       }
-    );
 
-    if (response.data.error) {
-      console.error("GitHub API error:", response.data);
-      return res.status(400).json({ error: response.data.error_description });
+      if (!response.data.access_token) {
+        console.error("No access token in response:", response.data);
+        return res.status(400).json({
+          error: "No access token in response",
+          details: response.data,
+        });
+      }
+
+      // Return the token to the client
+      console.log("Successfully exchanged code for token");
+      return res.json({ access_token: response.data.access_token });
+    } catch (githubError) {
+      console.error("GitHub API request failed:", githubError.message);
+
+      if (githubError.response) {
+        console.error("GitHub response status:", githubError.response.status);
+        console.error(
+          "GitHub response data:",
+          JSON.stringify(githubError.response.data)
+        );
+      }
+
+      return res.status(500).json({
+        error: "GitHub API request failed",
+        details: githubError.message,
+        response: githubError.response
+          ? JSON.stringify(githubError.response.data)
+          : "No response data",
+      });
     }
-
-    // Return the token to the client
-    res.json({ access_token: response.data.access_token });
   } catch (error) {
     console.error("Token exchange error:", error.message);
-    res.status(500).json({ error: "Failed to exchange code for token" });
+    console.error("Error stack:", error.stack);
+    next(error); // Let the error handler middleware handle it
   }
 });
 
@@ -1117,6 +1224,63 @@ function parseJavaOrTypeScriptFile(fileName, content) {
   return { classInfo, fileRelationships: relationships };
 }
 
+// Add a debug endpoint for environment variables
+app.get("/api/debug/env", (req, res) => {
+  res.json({
+    nodeEnv: process.env.NODE_ENV,
+    github: {
+      clientIdExists: !!process.env.GITHUB_CLIENT_ID,
+      clientSecretExists: !!process.env.GITHUB_CLIENT_SECRET,
+      clientIdPrefix: process.env.GITHUB_CLIENT_ID
+        ? process.env.GITHUB_CLIENT_ID.substring(0, 5)
+        : null,
+    },
+    openai: {
+      apiKeyExists: !!process.env.OPENAI_API_KEY,
+    },
+    vercel: {
+      isVercel: !!process.env.VERCEL,
+      url: process.env.VERCEL_URL || null,
+      env: process.env.VERCEL_ENV || null,
+    },
+  });
+});
+
+// Add a simplified debug token endpoint
+app.post("/api/debug/token", async (req, res) => {
+  try {
+    // Log all available information
+    console.log("Debug token exchange request received");
+    console.log("Request headers:", req.headers);
+    console.log("Request body:", req.body);
+    console.log("Request method:", req.method);
+    console.log("Request URL:", req.url);
+
+    return res.json({
+      status: "success",
+      message: "Debug endpoint working",
+      body_received: req.body,
+      env: {
+        node_env: process.env.NODE_ENV,
+        vercel: !!process.env.VERCEL,
+        github_id_exists: !!process.env.GITHUB_CLIENT_ID,
+      },
+    });
+  } catch (error) {
+    console.error("Debug endpoint error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// Add an absolute minimal test endpoint that should never crash
+app.get("/api/test", (req, res) => {
+  try {
+    return res.json({ status: "ok", timestamp: new Date().toISOString() });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 // Start the server
 if (process.env.NODE_ENV !== "production") {
   // Only listen on a port in development mode
@@ -1127,6 +1291,16 @@ if (process.env.NODE_ENV !== "production") {
   // In production (Vercel), we don't need to call listen() as it's handled by the platform
   console.log("Server running in production mode");
 }
+
+// Add fallback error middleware
+app.use((err, req, res, next) => {
+  console.error("Express error handler:", err);
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: err.message || "Something went wrong",
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+  });
+});
 
 // For Vercel serverless deployment, export the app
 module.exports = app;
