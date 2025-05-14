@@ -29,15 +29,30 @@ interface FocusedAiUmlParams extends AiUmlParams {
 export type DiagramType = "class" | "sequence" | "activity" | "component";
 
 class UmlService {
-  // Get the API URL from environment variables, or default to relative URL for production
-  private apiUrl = import.meta.env.VITE_API_URL || "/api";
+  // Dynamically determine the API URL
+  private getApiUrl(): string {
+    // Check if we're running in development or production
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    ) {
+      // Local development - use the env variable or fallback to localhost:3001
+      return import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+    } else {
+      // Production - use the current origin
+      return `${window.location.origin}/api`;
+    }
+  }
 
   async generateUmlDiagram(
     files: FileContent[],
     language: string = "java"
   ): Promise<UmlGenerationResult> {
     try {
-      const response = await axios.post(`${this.apiUrl}/generate-uml`, {
+      const apiUrl = this.getApiUrl();
+      console.log(`Making UML generation request to: ${apiUrl}/generate-uml`);
+
+      const response = await axios.post(`${apiUrl}/generate-uml`, {
         files,
         language,
       });
@@ -64,7 +79,12 @@ class UmlService {
     params: AiUmlParams
   ): Promise<UmlGenerationResult> {
     try {
-      const response = await axios.post(`${this.apiUrl}/ai-generate-uml`, {
+      const apiUrl = this.getApiUrl();
+      console.log(
+        `Making AI UML generation request to: ${apiUrl}/ai-generate-uml`
+      );
+
+      const response = await axios.post(`${apiUrl}/ai-generate-uml`, {
         owner: params.owner,
         repo: params.repo,
         token: params.token,
@@ -82,18 +102,20 @@ class UmlService {
     params: FocusedAiUmlParams
   ): Promise<UmlGenerationResult> {
     try {
-      const response = await axios.post(
-        `${this.apiUrl}/ai-generate-uml-focused`,
-        {
-          owner: params.owner,
-          repo: params.repo,
-          token: params.token,
-          diagramType: params.diagramType,
-          focusContext: params.focusContext || "",
-          customPrompt: params.customPrompt || "",
-          includedClasses: params.includedClasses || [],
-        }
+      const apiUrl = this.getApiUrl();
+      console.log(
+        `Making focused AI UML generation request to: ${apiUrl}/ai-generate-uml-focused`
       );
+
+      const response = await axios.post(`${apiUrl}/ai-generate-uml-focused`, {
+        owner: params.owner,
+        repo: params.repo,
+        token: params.token,
+        diagramType: params.diagramType,
+        focusContext: params.focusContext || "",
+        customPrompt: params.customPrompt || "",
+        includedClasses: params.includedClasses || [],
+      });
 
       return response.data;
     } catch (error) {
