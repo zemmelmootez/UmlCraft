@@ -73,6 +73,17 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Add global error handling - place this before app.use(cors())
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  // Application specific handling code here
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  // Application specific handling code here
+});
+
 // Update the CORS configuration section
 const corsOptions = {
   origin:
@@ -112,12 +123,24 @@ app.get("/auth/github", (req, res) => {
 });
 
 // GitHub OAuth token exchange endpoint
-app.post("/api/github/token", async (req, res) => {
+app.post("/api/github/token", async (req, res, next) => {
   try {
-    const { code } = req.body;
-
     console.log("Token exchange request received");
-    console.log("Request body:", req.body);
+
+    // Check if request body exists
+    if (!req.body) {
+      console.error("Request body is undefined");
+      return res.status(400).json({ error: "No request body" });
+    }
+
+    const { code } = req.body;
+    console.log("Request body:", typeof req.body, req.body);
+    console.log(
+      "Code from request:",
+      typeof code,
+      code ? code.substring(0, 5) + "..." : "missing"
+    );
+
     console.log("Environment check:");
     console.log("- NODE_ENV:", process.env.NODE_ENV);
     console.log("- GITHUB_CLIENT_ID exists:", !!process.env.GITHUB_CLIENT_ID);
@@ -145,8 +168,12 @@ app.post("/api/github/token", async (req, res) => {
       });
     }
 
+    // Hardcoded values for debugging
+    const clientId = process.env.GITHUB_CLIENT_ID || "Ov23liuIob6HCWRHv5sc";
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET || "";
+
     console.log(
-      `Exchanging code for token with: Client ID: ${process.env.GITHUB_CLIENT_ID.substring(
+      `Exchanging code for token with: Client ID: ${clientId.substring(
         0,
         5
       )}..., Code: ${code.substring(0, 5)}...`
@@ -157,15 +184,15 @@ app.post("/api/github/token", async (req, res) => {
       const response = await axios.post(
         "https://github.com/login/oauth/access_token",
         {
-          client_id: process.env.GITHUB_CLIENT_ID,
-          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          client_id: clientId,
+          client_secret: clientSecret,
           code,
         },
         {
           headers: {
             Accept: "application/json",
           },
-          timeout: 8000, // 8 second timeout
+          timeout: 10000, // 10 second timeout
         }
       );
 
@@ -176,6 +203,14 @@ app.post("/api/github/token", async (req, res) => {
         console.error("GitHub API error:", response.data);
         return res.status(400).json({
           error: response.data.error_description,
+          details: response.data,
+        });
+      }
+
+      if (!response.data.access_token) {
+        console.error("No access token in response:", response.data);
+        return res.status(400).json({
+          error: "No access token in response",
           details: response.data,
         });
       }
@@ -204,10 +239,8 @@ app.post("/api/github/token", async (req, res) => {
     }
   } catch (error) {
     console.error("Token exchange error:", error.message);
-    return res.status(500).json({
-      error: "Failed to exchange code for token",
-      details: error.message,
-    });
+    console.error("Error stack:", error.stack);
+    next(error); // Let the error handler middleware handle it
   }
 });
 
@@ -1213,6 +1246,41 @@ app.get("/api/debug/env", (req, res) => {
   });
 });
 
+// Add a simplified debug token endpoint
+app.post("/api/debug/token", async (req, res) => {
+  try {
+    // Log all available information
+    console.log("Debug token exchange request received");
+    console.log("Request headers:", req.headers);
+    console.log("Request body:", req.body);
+    console.log("Request method:", req.method);
+    console.log("Request URL:", req.url);
+
+    return res.json({
+      status: "success",
+      message: "Debug endpoint working",
+      body_received: req.body,
+      env: {
+        node_env: process.env.NODE_ENV,
+        vercel: !!process.env.VERCEL,
+        github_id_exists: !!process.env.GITHUB_CLIENT_ID,
+      },
+    });
+  } catch (error) {
+    console.error("Debug endpoint error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// Add an absolute minimal test endpoint that should never crash
+app.get("/api/test", (req, res) => {
+  try {
+    return res.json({ status: "ok", timestamp: new Date().toISOString() });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 // Start the server
 if (process.env.NODE_ENV !== "production") {
   // Only listen on a port in development mode
@@ -1223,6 +1291,16 @@ if (process.env.NODE_ENV !== "production") {
   // In production (Vercel), we don't need to call listen() as it's handled by the platform
   console.log("Server running in production mode");
 }
+
+// Add fallback error middleware
+app.use((err, req, res, next) => {
+  console.error("Express error handler:", err);
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: err.message || "Something went wrong",
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+  });
+});
 
 // For Vercel serverless deployment, export the app
 module.exports = app;
