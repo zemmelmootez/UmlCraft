@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { githubService } from "../services/githubService";
 import axios from "axios";
 
 const GitHubCallback: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 2;
 
   useEffect(() => {
+    // Fix for callback URL asset loading - if we're at /auth/github/callback, redirect to root
+    // and preserve query parameters for proper OAuth handling
+    if (location.pathname === "/auth/github/callback" && window.location.pathname.includes("/auth/github/")) {
+      const queryParams = window.location.search;
+      window.location.href = `/${queryParams}`;
+      return;
+    }
+
     const handleCallback = async () => {
       setIsLoading(true);
 
@@ -117,7 +126,7 @@ const GitHubCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [navigate, retryCount]);
+  }, [navigate, retryCount, location.pathname]);
 
   const tryAgain = () => {
     setError(null);

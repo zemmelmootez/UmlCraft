@@ -168,7 +168,9 @@ class GitHubService {
       throw new Error("GitHub Client ID not configured");
     }
 
-    const redirectUri = `${window.location.origin}/auth/github/callback`;
+    // Use absolute path for the callback URL to avoid subfolder issues
+    const baseUrl = window.location.origin;
+    const redirectUri = `${baseUrl}/auth/github/callback`;
     const scope = "repo,user"; // Adjust as needed
 
     const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
